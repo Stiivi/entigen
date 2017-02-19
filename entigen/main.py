@@ -29,7 +29,7 @@ parser.add_argument('-w', '--writer', dest='writer',
                     help="Writer type")
 
 
-def main():
+def main() -> None:
 
     args = parser.parse_args()
 

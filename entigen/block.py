@@ -3,7 +3,7 @@
 from typing import Union, cast, List, Optional, Iterable
 
 BlockType = Union["Block", str]
-BlockConvertible = Union["Block", str, List[str]]
+BlockConvertible = Union[BlockType, List[BlockType]]
 
 class Block:
     children: List[BlockType]
@@ -21,9 +21,7 @@ class Block:
 
         if not block:
             self.children = []
-        elif isinstance(block, Block):
-            self.children = block.children
-        elif isinstance(block, str):
+        elif isinstance(block, (Block, str)):
             self.children = [block]
         elif isinstance(block, list):
             self.children = cast(List[BlockType], block)

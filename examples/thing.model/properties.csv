@@ -1,0 +1,4 @@
+category,entity,name,type,optional,tag,label,description,default
+default,Thing,name,string,no,1,Name,Name of a thing,
+default,Thing,type,string,no,2,Type,Type of a thing,
+default,Thing,tags,list<string>,no,3,Tags,List of thing categorization tags,[]

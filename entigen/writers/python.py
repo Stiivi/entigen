@@ -1,4 +1,7 @@
 from typing import List, Optional
+
+import re
+
 from ..model import Model, Entity, Property
 from ..block import Block, BlockType
 
@@ -36,10 +39,16 @@ class PythonWriter(Writer, name="python"):
         # TODO: Handle enums
         return PYTHON_BASE_TYPES.get(type.name, "Any")
 
-    def typed_property(self, prop: Property) -> str:
-        """Create type-annotated variable."""
+    def typed_property(self, prop: Property, wrap: Optional[str]=None) -> str:
+        """Create type-annotated variable. `wrap` is optional type that the
+        property type will be wrapped in, for example `Optional`"""
         type_str = self.type_annotation(prop.type)
-        return "{name}:{type_str}".format(name=prop.name, type_str=type_str)
+
+        # Wrapt the type
+        if wrap:
+            type_str = "{}[{}]".format(wrap, type_str)
+
+        return "{name}: {type_str}".format(name=prop.name, type_str=type_str)
 
     def docstring(self, text: str) -> str:
         return '"""{}"""'.format(text)
@@ -48,18 +57,70 @@ class PythonWriter(Writer, name="python"):
         # TODO: Block with prefix
         return Block("# {}".format(text))
 
+    def literal(self, value: str, type: Type) -> str:
+        """Format literal value `value`"""
+
+        if type.is_composite:
+            raise NotImplementedError("Literal values for composite types is"
+                                      "not supported.")
+
+        if type.name in ("string", "identifier"):
+            quoted_string = re.sub('"', '\\"', value)
+            quoted_string = re.sub('\\', '\\\\', value)
+            return '"{}"'.format(quoted_string)
+
+        else:
+            return value
+
+    def init_argument(self, prop: Property) -> str:
+        """Return a __init__ function argument for property `prop` with
+        assigned default value."""
+
+        # Nothing to do if there is no default value
+        if not prop.default:
+            return self.typed_property(prop)
+
+        if not prop.type.is_composite:
+            # Base type
+            value = self.literal(prop.default, prop.type)
+            wrap = None
+        else:
+            # Wrap the type as 'optiona' so we can pass the `None` and
+            # later test for it
+            value = "None"
+            wrap = "Optional"
+
+        typed_arg = self.typed_property(prop, wrap=wrap)
+        return "{}={}".format(typed_arg, value)
+
+    def init_assignment(self, prop: Property) -> Block:
+        """Return a __init__ asignment for property `prop` with assigned
+        default value."""
+
+        b = Block()
+
+        # Nothing to do if there is no default value
+        if prop.type.is_composite and prop.default:
+            b += "if {} is None:".format(prop.name)
+            b += "    self.{} = {}".format(prop.name, prop.default)
+            b += "else:".format(prop.name)
+            b += "    self.{} = {}".format(prop.name, prop.name)
+        else:
+            b += "self.{} = {}".format(prop.name, prop.name)
+
+        return b
+
     def init_method(self, entity: Entity) -> Block:
         """Generate ``__init__` method for entity `Entity"""
 
         args = Block(indent=13, suffix=",")
         for prop in entity.properties:
-            arg = "{}".format(self.typed_property(prop))
+            arg = "{}".format(self.init_argument(prop))
             args += arg
 
         inits = Block(indent=4)
         for prop in entity.properties:
-            var = "self.{} = {}".format(prop.name, prop.name)
-            inits += var
+            inits += self.init_assignment(prop)
 
         b = Block()
 
@@ -166,7 +227,7 @@ class PythonWriter(Writer, name="python"):
 
         b = Block()
 
-        b += "from typing import Any, List, cast"
+        b += "from typing import Any, List, cast, Optional"
         b += ""
 
         b += self.write_classes(entities)

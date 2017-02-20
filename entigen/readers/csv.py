@@ -53,12 +53,16 @@ class CSVReader(Reader, name="csv"):
             raise MetadataError("Invalid tag for property '{}.{}'"
                                 .format(entity_name, name))
 
+        # Empty string in CSV is interpreted None
+        default: Optional[str] = row["default"] or None
+
         prop = Property(
             name=row["name"],
             tag=int(row["tag"]),
             raw_type=row["type"],
             label=row["label"],
-            desc=row["description"]
+            desc=row["description"],
+            default=default,
         )
 
         return prop

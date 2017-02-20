@@ -6,6 +6,8 @@ Generator that takes an entity-relationship-like model as input and generates
 various blocks of source files that either describe the model in the target
 language or perform some functionality with the structures of the model.
 
+Reduces need to write a lot of boiler plate.
+
 Example uses: class definition, initialization methods, comparators, database
 storage/retrieval operations, protocol specifications, documentation, etc.
 
@@ -34,6 +36,12 @@ The `entigen` tool requires Python >= 3.6
 	  -t WRITER, --to WRITER
 							Text output format
 
+Example: go to the `examples` directory and run:
+
+    entigen thing.model > thing.py
+
+Then see the generated `thing.py` file.
+
 ## Writers and Blocks
 
 The following writers are available:
@@ -50,7 +58,9 @@ The Python writer writes type-annotated Python 3.6 source code. Blocks:
 * `class_file` – file with classes of specified entities
 
 `__init__` – method takes one argument per entity property and then assigns
-it to the corresponding instance variable.
+it to the corresponding instance variable. If a variable is composite, such as
+list, and has a default value, then the default value is assigned within the
+method, not in the argument list.
 
 `__eq__` – method takes other object, then compares whether the other object is
 of the same subclass as the entity. All properties of the entity are compared
@@ -89,6 +99,13 @@ The complex types are:
 
 * `list<BASETYPE>` - list of base-type objects
 
+
+### Special default values
+
+The following special values should be compared as whole strings for their
+corresponding types.
+
+* `[]` is a special default value for a string meaning an empty string
 
 # Author and License
 

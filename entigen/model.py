@@ -28,8 +28,11 @@ class Property:
     desc: str
     """Human-readable description of the property"""
 
+    default: Optional[str]
+    """String representation of the default value"""
+
     def __init__(self, name: str, tag: int, raw_type: str, label: str,
-            desc: str) -> None:
+            desc: str, default: Optional[str]) -> None:
         self.name = name
         self.tag = tag
         self.raw_type = raw_type
@@ -37,6 +40,7 @@ class Property:
         self.type = Type.from_string(raw_type)
         self.label = label
         self.desc = desc
+        self.default = default
 
 
 class Entity:

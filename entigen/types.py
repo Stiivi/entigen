@@ -21,7 +21,7 @@ COMPOSITE_TYPES = [
     "list"        
 ]
 
-COMPOSITE_PATTERN = r"^(\w)+<(\w+)>$"
+COMPOSITE_PATTERN = r"^(\w+)<(\w+)>$"
 
 """Pattern for composite data type. Note that we accept only composite of a
 base type, no recursion is allowed."""

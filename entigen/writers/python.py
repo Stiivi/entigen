@@ -21,6 +21,22 @@ PYTHON_BASE_TYPES = {
     "int": "int",
 }
 
+
+def sort_by_default(props: List[Property]) -> List[Property]:
+    """Sort properties `props` by whether they have default value or not. Put
+    the ones with default value at the end."""
+    first: List[Property] = []
+    last: List[Property] = []
+
+    for prop in props:
+        if prop.default is not None:
+            last.append(prop)
+        else:
+            first.append(prop)
+
+    return first + last
+
+
 class PythonWriter(Writer, name="python"):
 
     block_types = ["class_file", "class"]
@@ -39,7 +55,12 @@ class PythonWriter(Writer, name="python"):
                                     "Python type".format(type))
 
         # TODO: Handle enums
-        return PYTHON_BASE_TYPES.get(type.name, "Any")
+        if type.name in PYTHON_BASE_TYPES:
+            return PYTHON_BASE_TYPES[type.name]
+        elif self.model.is_entity(type.name):
+            return type.name
+        else:
+            raise DatatypeError(type.name)
 
     def typed_property(self, prop: Property, wrap: Optional[str]=None) -> str:
         """Create type-annotated variable. `wrap` is optional type that the
@@ -116,7 +137,7 @@ class PythonWriter(Writer, name="python"):
         """Generate ``__init__` method for entity `Entity"""
 
         args = Block(indent=13, suffix=",")
-        for prop in entity.properties:
+        for prop in sort_by_default(entity.properties):
             arg = "{}".format(self.init_argument(prop))
             args += arg
 

@@ -76,3 +76,6 @@ class Model:
         """Return list of names of all entities in the model"""
         return [ent.name for ent in self.entities]
 
+    def is_entity(self, symbol: str) -> bool:
+        """Return `true` if the symbol is an entity"""
+        return symbol in self.entity_names

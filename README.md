@@ -46,8 +46,15 @@ The following writers are available:
 The Python writer writes type-annotated Python 3.6 source code. Blocks:
 
 * `class` – class with instance variable annotations and the
-  `__init__()` method
+  `__init__` and `__eq__` method
 * `class_file` – file with classes of specified entities
+
+`__init__` – method takes one argument per entity property and then assigns
+it to the corresponding instance variable.
+
+`__eq__` – method takes other object, then compares whether the other object is
+of the same subclass as the entity. All properties of the entity are compared
+with the properties of the other entity.
 
 
 ## Readers

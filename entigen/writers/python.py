@@ -71,6 +71,57 @@ class PythonWriter(Writer, name="python"):
 
         return b
 
+    def eq_method(self, entity: Entity) -> Block:
+        """Generate the comparator ``__eq__`` method."""
+
+        """
+        if \
+            self.p1 == other.p1 \
+            and self.p2 == other.p2:
+        
+        """
+
+        comps = Block(indent=4)
+
+        for i, prop in enumerate(entity.properties):
+            if i == 0:
+                prefix = ""
+            else:
+                prefix = "and "
+
+            if i < len(entity.properties) - 1:
+                suffix = " \\"
+            else:
+                suffix = ":"
+
+            comparison = "{}self.{} == tother.{}{}" \
+                         .format(prefix, prop.name, prop.name, suffix)
+
+            comps += comparison
+
+
+        b = Block()
+        b += "def __eq__(self, other: object) -> bool:".format(entity.name)
+
+        ifb = Block(indent=4)
+        ifb += "if not isinstance(other, {}):".format(entity.name)
+        ifb += "    return False"
+        ifb += ""
+        ifb += "# 'typed' other" 
+        ifb += "tother = cast({}, other)".format(entity.name)
+        ifb += ""
+        ifb += "if \\"
+        ifb += comps
+        
+        ifb += "    return True"
+        ifb += "else:"
+        ifb += "    return False"
+
+        b += ifb
+
+        return b
+
+
     def write_class(self, entity: Entity) -> Block:
         """Generate class for `entity`"""
 
@@ -94,6 +145,9 @@ class PythonWriter(Writer, name="python"):
         b += ""
         b += Block(self.init_method(entity), indent=4)
 
+        b += ""
+        b += Block(self.eq_method(entity), indent=4)
+
         return b
 
     def write_classes(self, entities: List[Entity]) -> Block:
@@ -112,7 +166,7 @@ class PythonWriter(Writer, name="python"):
 
         b = Block()
 
-        b += "from typing import Any, List"
+        b += "from typing import Any, List, cast"
         b += ""
 
         b += self.write_classes(entities)

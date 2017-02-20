@@ -6,7 +6,7 @@ import re
 
 from typing import Optional, List
 
-from .errors import TypeError
+from .errors import DatatypeError
 
 
 BASE_TYPES = [
@@ -74,7 +74,7 @@ class Type:
         raise an exception if the type is not composite."""
 
         if not self.is_composite:
-            raise TypeError("Type '{}' is not a composite type"
+            raise DatatypeError("Type '{}' is not a composite type"
                             .format(str(self)))
 
         return self.children[0]

@@ -8,16 +8,6 @@ from .writers.python import PythonWriter
 
 from .extensible import Extensible
 
-FILENAME = "properties.csv"
-
-READERS = {
-    "csv": CSVReader
-}
-
-WRITERS = {
-    "python": PythonWriter        
-}
-
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('model',

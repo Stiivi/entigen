@@ -2,7 +2,7 @@ class EntgenError(Exception):
     """Base class for Entgen errors"""
 
 
-class TypeError(Exception):
+class DatatypeError(Exception):
     """Exception related to data types"""
 
 

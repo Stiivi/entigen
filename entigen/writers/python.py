@@ -8,6 +8,8 @@ from ..block import Block, BlockType
 from ..types import Type
 from ..extensible import Writer
 
+from ..errors import DatatypeError
+
 class TextResult:
     lines: List[str]
     indent: int
@@ -33,8 +35,8 @@ class PythonWriter(Writer, name="python"):
             if type.name == "list":
                 return "List[{}]".format(self.type_annotation(type.first_child))
             else:
-                raise TypeError("Can't convert composite type '{}' into Python type"
-                                .format(type))
+                raise DatatypeError("Can't convert composite type '{}' into "
+                                    "Python type".format(type))
 
         # TODO: Handle enums
         return PYTHON_BASE_TYPES.get(type.name, "Any")

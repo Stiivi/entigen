@@ -9,14 +9,18 @@ class Block:
     children: List[BlockType]
     first: Optional[int]
     indent: int
+    prefix: Optional[str]
+    suffix: Optional[str]
     
     def __init__(self, block: Optional[BlockConvertible]=None,
             indent: int=0,
             first: Optional[int]=None,
+            prefix: Optional[str]=None,
             suffix: Optional[str]=None) -> None:
 
         self.indent = indent
         self.first = first
+        self.prefix = prefix
         self.suffix = suffix
 
         if not block:
@@ -40,10 +44,11 @@ class Block:
         offset = self.indent + indent
         padding = " " * offset
         suffix = self.suffix or ""
+        prefix = self.prefix or ""
 
         for child in self.children:
             if isinstance(child, str):
-                yield padding + child + suffix
+                yield padding + prefix + child + suffix
             else:
                 for line in child.lines(indent=offset):
                     yield line

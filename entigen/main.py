@@ -6,6 +6,8 @@ from .model import Model
 from .readers.csv import CSVReader
 from .writers.python import PythonWriter
 
+from .extensible import Extensible
+
 FILENAME = "properties.csv"
 
 READERS = {
@@ -18,31 +20,37 @@ WRITERS = {
 
 
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('model', nargs='+',
+parser.add_argument('model',
                     help='Model source')
 
-parser.add_argument('-r', '--reader', dest='reader', 
+parser.add_argument('entities', nargs='*',
+                    help='Entities to be included')
+
+parser.add_argument('-b', '--block', dest='block_type', 
+                    help="Block type the writer writes")
+
+parser.add_argument('-f', '--from', dest='reader', 
                     default="csv",
-                    help="Reader type")
-parser.add_argument('-w', '--writer', dest='writer', 
+                    help="Metamodel input format")
+
+parser.add_argument('-t', '--to', dest='writer', 
                     default="python",
-                    help="Writer type")
+                    help="Text output format")
 
 
 def main() -> None:
 
     args = parser.parse_args()
 
-
     model = Model()
-    reader = READERS[args.reader](model=model)
+    reader = Extensible.readers[args.reader](model=model)
 
-    for path in args.model:
-        reader.read_model(path)
+    reader.read_model(args.model)
 
-    writer = WRITERS[args.writer](model=model)
+    writer = Extensible.writers[args.writer](model=model)
 
-    # TODO: This is just for playground purposes
-    for ent in reader.model.entities:
-        b = writer.write_class_file(ent)
-        print(b)
+    # If no block type is specified then default is used
+    block_type = args.block_type or writer.block_types[0]
+    block = writer.create_block(block_type, args.entities)
+
+    print(block)

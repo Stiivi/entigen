@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Optional
 from ..model import Model, Entity, Property
 from ..block import Block, BlockType
 
 from ..types import Type
+from ..extensible import Writer
 
 class TextResult:
     lines: List[str]
@@ -15,7 +16,10 @@ PYTHON_BASE_TYPES = {
     "int": "int",
 }
 
-class PythonWriter:
+class PythonWriter(Writer, name="python"):
+
+    block_types = ["class_file", "class"]
+
     def __init__(self, model: Model) -> None:
         self.model = model
 
@@ -92,7 +96,18 @@ class PythonWriter:
 
         return b
 
-    def write_class_file(self, entity: Entity) -> Block:
+    def write_classes(self, entities: List[Entity]) -> Block:
+        """Generate class definition file for `entity`"""
+
+        b = Block()
+
+        for ent in entities:
+            b += self.write_class(ent)
+            b += ""
+
+        return b
+
+    def write_class_file(self, entities: List[Entity]) -> Block:
         """Generate class definition file for `entity`"""
 
         b = Block()
@@ -100,6 +115,18 @@ class PythonWriter:
         b += "from typing import Any, List"
         b += ""
 
-        b += self.write_class(entity)
+        b += self.write_classes(entities)
 
         return b
+
+    def create_block(self, block_type: str,
+                     entities: Optional[List[str]]=None) -> Block:
+        write_ents = [self.model.entity(name)
+                      for name in entities or self.model.entity_names]
+
+        if block_type == "class":
+            return self.write_classes(write_ents)
+        elif block_type == "class_file":
+            return self.write_class_file(write_ents)
+        else:
+            raise Exception("Unknown Python block type '{}'".format(block_type))

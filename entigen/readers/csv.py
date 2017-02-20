@@ -10,13 +10,14 @@ from typing import Optional, Iterable, Dict, List
 
 from ..errors import MetadataError
 from ..model import Model, Entity, Property
+from ..extensible import Reader
 
 
 PROPERTIES_FILE = "properties.csv"
 ENTITIES_FILE = "entities.csv"
 
 
-class CSVReader:
+class CSVReader(Reader, name="csv"):
 
     model: Model
 

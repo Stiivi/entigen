@@ -6,10 +6,19 @@ Generator that takes an entity-relationship-like model as input and generates
 various blocks of source files that either describe the model in the target
 language or perform some functionality with the structures of the model.
 
-Reduces need to write a lot of boiler plate.
+The tool's goals are:
+
+* Reduce boilerplate while maintaining transparency
+* Reduce points where error might be manually introduced
+* Respect multiple languages and preserve type consistency
 
 Example uses: class definition, initialization methods, comparators, database
 storage/retrieval operations, protocol specifications, documentation, etc.
+
+This tool is to be used when language magic is not desired and when transparent
+code and ability to diagnose is prefered. Examples of language magic: Python
+metaclasses, synthesized properties and methods.
+
 
 ## Requirements
 
@@ -105,7 +114,18 @@ The complex types are:
 The following special values should be compared as whole strings for their
 corresponding types.
 
-* `[]` is a special default value for a string meaning an empty string
+* `[]` is a special default value for a string meaning an empty list
+
+
+# Development
+
+Some things to keep in mind while working on this tool:
+
+* The generated source should be as human-readable as possible, it should be
+    nicely formatted and not far from how a person with a good style would
+    write it.
+* When adding a core data type its availability or convertibility to other
+    languages (programming or modelling) should be strongly considered.
 
 # Author and License
 

@@ -10,10 +10,6 @@ from ..extensible import Writer
 
 from ..errors import DatatypeError
 
-class TextResult:
-    lines: List[str]
-    indent: int
-
 
 PYTHON_BASE_TYPES = {
     "identifier": "str",
@@ -136,10 +132,9 @@ class PythonWriter(Writer, name="python"):
     def init_method(self, entity: Entity) -> Block:
         """Generate ``__init__` method for entity `Entity"""
 
-        args = Block(indent=13, suffix=",")
+        args = Block(indent=13, suffix=",", last_suffix="")
         for prop in sort_by_default(entity.properties):
-            arg = "{}".format(self.init_argument(prop))
-            args += arg
+            args += self.init_argument(prop)
 
         inits = Block(indent=4)
         for prop in entity.properties:
@@ -159,29 +154,20 @@ class PythonWriter(Writer, name="python"):
         """Generate the comparator ``__eq__`` method."""
 
         """
-        if \
-            self.p1 == other.p1 \
+        if self.p1 == other.p1 \\
             and self.p2 == other.p2:
         
         """
 
-        comps = Block(indent=4)
+        comps = Block(indent=4,
+                      first_indent=0,
+                      first_prefix="if ",
+                      prefix="and ",
+                      suffix=" \\",
+                      last_suffix=":")
 
         for i, prop in enumerate(entity.properties):
-            if i == 0:
-                prefix = ""
-            else:
-                prefix = "and "
-
-            if i < len(entity.properties) - 1:
-                suffix = " \\"
-            else:
-                suffix = ":"
-
-            comparison = "{}self.{} == tother.{}{}" \
-                         .format(prefix, prop.name, prop.name, suffix)
-
-            comps += comparison
+            comps += "self.{} == tother.{}".format(prop.name, prop.name)
 
 
         b = Block()
@@ -194,7 +180,6 @@ class PythonWriter(Writer, name="python"):
         ifb += "# 'typed' other" 
         ifb += "tother = cast({}, other)".format(entity.name)
         ifb += ""
-        ifb += "if \\"
         ifb += comps
         
         ifb += "    return True"

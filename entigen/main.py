@@ -5,6 +5,7 @@ import argparse
 from .model import Model
 from .readers.csv import CSVReader
 from .writers.python import PythonWriter
+from .writers.info import InfoWriter
 
 from .extensible import Extensible
 

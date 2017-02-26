@@ -1,16 +1,27 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from ..model import Model, Entity, Property
 from ..block import Block
 from ..extensible import Writer
+from ..utils import decamelize, to_identifier
 
 class InfoWriter(Writer, name="info"):
     """Writer that creates basic information about the model"""
 
     block_types = ["entity_list"]
 
-    def __init__(self, model: Model) -> None:
+    variables = [
+        ("decamelize", "Decamelize entity names into valid lowercase identifier"),
+    ]
+
+    def __init__(self, model: Model,
+                 variables: Optional[Dict[str,str]]=None) -> None:
         self.model = model
+
+        if "decamelize" in variables:
+            self.decamelize = True
+        else:
+            self.decamelize = False
 
     def write_entity_list(self, entities: List[Entity]) -> Block:
         """Write list of entity names, one per line."""
@@ -18,7 +29,12 @@ class InfoWriter(Writer, name="info"):
         b = Block()
 
         for entity in entities:
-            b += entity.name
+            if self.decamelize:
+                name = to_identifier(decamelize(entity.name))
+            else:
+                name = entity.name
+
+            b += name
 
         return b
 

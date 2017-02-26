@@ -27,7 +27,7 @@ The `entigen` tool requires Python >= 3.6
 
 ## Usage
 
-	usage: entigen [-h] [-b BLOCK_TYPE] [-f READER] [-t WRITER]
+	usage: entigen [-h] [-b BLOCK_TYPE] [-f READER] [-t WRITER] [-V VARIABLES]
 				   model [entities [entities ...]]
 
 	Process some integers.
@@ -44,6 +44,9 @@ The `entigen` tool requires Python >= 3.6
 							Metamodel input format
 	  -t WRITER, --to WRITER
 							Text output format
+	  -V VARIABLES, --variable VARIABLES
+							Text output format
+
 
 Example: go to the `examples` directory and run:
 
@@ -55,7 +58,8 @@ Then see the generated `thing.py` file.
 
 The following writers are available:
 
-* `python`
+* `python` – Python source file or snippet writer
+* `info` – Text output writer
 
 
 ### Python Writer
@@ -74,6 +78,20 @@ method, not in the argument list.
 `__eq__` – method takes other object, then compares whether the other object is
 of the same subclass as the entity. All properties of the entity are compared
 with the properties of the other entity.
+
+
+### Info Writer
+
+The `info` writer can be used by shell scripts to learn more about the moden
+and the have better control over overal output generation using other writers.
+
+To list names of all entities in a model, one per line, use:
+
+    entigen -w info model
+
+Variables:
+
+* `decamelize` – write entity names as lower-case identifiers
 
 
 ## Readers

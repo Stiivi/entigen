@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import re
 
@@ -37,7 +37,8 @@ class PythonWriter(Writer, name="python"):
 
     block_types = ["class_file", "class"]
 
-    def __init__(self, model: Model) -> None:
+    def __init__(self, model: Model,
+                 variables: Optional[Dict[str,str]]=None) -> None:
         self.model = model
 
     def type_annotation(self, type: Type) -> str:

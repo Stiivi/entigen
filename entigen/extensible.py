@@ -41,7 +41,8 @@ class Writer(Extensible):
 
     block_types: List[str] = []
 
-    def __init__(self, model: Model) -> None:
+    def __init__(self, model: Model,
+                 variables: Optional[Dict[str,str]]=None) -> None:
         pass
 
     def create_block(self, block_type: str,

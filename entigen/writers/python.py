@@ -8,14 +8,27 @@ from ..block import Block, BlockType
 from ..types import Type
 from ..extensible import Writer
 
-from ..errors import DatatypeError
+from ..errors import DatatypeError, ConfigError
+from ..utils import to_bool, to_identifier, decamelize
 
+from collections import namedtuple
 
 PYTHON_BASE_TYPES = {
     "identifier": "str",
     "string": "str",
     "int": "int",
+    "datetime": "datetime",
+    "date": "date",
     "objref": "Any",
+}
+
+TypeImport = namedtuple("TypeImport", ["module", "symbol"])
+
+PYTHON_TYPE_IMPORTS = {
+    "datetime": TypeImport("datetime", "datetime"),
+    "date": TypeImport("datetime", "date"),
+    "list": TypeImport("typing", "List"),
+    "dict": TypeImport("typing", "Dict"),
 }
 
 
@@ -38,9 +51,18 @@ class PythonWriter(Writer, name="python"):
 
     block_types = ["class_file", "class"]
 
+    entities_module: Optional[str]
+    entity_per_module: bool
+    enums_module: Optional[str]
+
     def __init__(self, model: Model,
                  variables: Optional[Dict[str,str]]=None) -> None:
         self.model = model
+
+        self.entities_module = variables.get("entities_module")
+        self.entity_per_module = to_bool(variables.get("entity_per_module")
+                                         or False)
+        self.enums_module = variables.get("enums_module")
 
     def type_annotation(self, type: Type) -> str:
         """Convert `type` into python Python annotation"""
@@ -48,6 +70,10 @@ class PythonWriter(Writer, name="python"):
         if type.is_composite:
             if type.name == "list":
                 return "List[{}]".format(self.type_annotation(type.first_child))
+            if type.name == "dict":
+                keytype = self.type_annotation(type.children[0])
+                valuetype = self.type_annotation(type.children[1])
+                return "Dict[{},{}]".format(keytype, valuetype)
             else:
                 raise DatatypeError("Can't convert composite type '{}' into "
                                     "Python type".format(type))
@@ -61,6 +87,57 @@ class PythonWriter(Writer, name="python"):
             return type.name
         else:
             raise DatatypeError(type.name)
+
+    def _entity_import(self, entity: Entity) -> Optional[TypeImport]:
+
+        if not self.entities_module:
+            return None
+
+        module: str = self.entities_module
+
+        # If there is one module per entity, then import that entity from a
+        # sub-module
+        if self.entity_per_module:
+            submodule = to_identifier(decamelize(entity.name))
+            # Handle `.`, `..`, ... modules:
+            if module.endswith("."):
+                module += submodule
+            else:
+                module += "." + submodule
+
+        return TypeImport(module, entity.name)
+
+    def type_imports(self, type: Type) -> List[TypeImport]:
+        """Return list of imports that provide the type `type`."""
+        imports: List[TypeImport] = []
+
+        try:
+            imp = PYTHON_TYPE_IMPORTS[type.name]
+        except KeyError:
+            pass
+        else:
+            imports.append(imp)
+
+        if self.model.is_entity(type.name):
+            imp = self._entity_import(self.model.entity(type.name))
+            if imp:
+                imports.append(imp)
+        elif self.model.is_enum(type.name):
+            pass
+
+        for child in type.children or []:
+            imports += self.type_imports(child)
+
+        return imports
+
+    def entity_type_imports(self, entity: Entity) -> List[TypeImport]:
+        """Collect all imports required for entity `entity`."""
+        imports: List[TypeImport] = []
+
+        for prop in entity.properties:
+            imports += self.type_imports(prop.type)
+
+        return imports
 
     def typed_property(self, prop: Property, wrap: Optional[str]=None) -> str:
         """Create type-annotated variable. `wrap` is optional type that the
@@ -237,11 +314,20 @@ class PythonWriter(Writer, name="python"):
     def write_class_file(self, entities: List[Entity]) -> Block:
         """Generate class definition file for `entity`"""
 
+        imports: List[TypeImport] = []
+        for ent in entities:
+            imports += self.entity_type_imports(ent)
+        imports = list(set(imports))
+
+
         b = Block()
 
         b += "from typing import Any, List, cast, Optional"
-        b += ""
 
+        for imp in imports:
+            b += "from {} import {}".format(imp.module, imp.symbol)
+
+        b += ""
         b += self.write_classes(entities)
 
         return b

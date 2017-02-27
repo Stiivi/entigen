@@ -80,6 +80,15 @@ of the same subclass as the entity. All properties of the entity are compared
 with the properties of the other entity.
 
 
+Variables:
+
+* `entities_module` – module name from which entities are imported
+* `entity_per_module` - if set to true, then every entity imported has it's own
+  sub-module within the `entities_module`. For example, if entity
+  d `ImportantThing` is required, and the entities module is `entities` then
+  the import will be `from entities.important_thing import ImportantThing`
+* `enums_module` – module from which enums are imported
+
 ### Info Writer
 
 The `info` writer can be used by shell scripts to learn more about the moden

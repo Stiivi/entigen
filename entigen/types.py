@@ -12,6 +12,8 @@ from .errors import DatatypeError
 BASE_TYPES = [
     "string",
     "int",
+    "date",
+    "datetime",
     # Special case of a string data type for which certain validation rules
     # might apply
     "identifier",

@@ -69,6 +69,7 @@ The Python writer writes type-annotated Python 3.6 source code. Blocks:
 * `class` – class with instance variable annotations and the
   `__init__` and `__eq__` method
 * `class_file` – file with classes of specified entities
+* `enums_file` – file with definitions of all enums
 
 `__init__` – method takes one argument per entity property and then assigns
 it to the corresponding instance variable. If a variable is composite, such as

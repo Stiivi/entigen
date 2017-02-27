@@ -2,7 +2,7 @@ from typing import List, Optional, Dict
 
 import re
 
-from ..model import Model, Entity, Property
+from ..model import Model, Entity, Property, Enumeration
 from ..block import Block, BlockType
 
 from ..types import Type
@@ -107,6 +107,13 @@ class PythonWriter(Writer, name="python"):
 
         return TypeImport(module, entity.name)
 
+    def _enum_import(self, enum: Enumeration) -> Optional[TypeImport]:
+
+        if not self.enums_module:
+            return None
+
+        return TypeImport(self.enums_module, enum.name)
+
     def type_imports(self, type: Type) -> List[TypeImport]:
         """Return list of imports that provide the type `type`."""
         imports: List[TypeImport] = []
@@ -123,6 +130,9 @@ class PythonWriter(Writer, name="python"):
             if imp:
                 imports.append(imp)
         elif self.model.is_enum(type.name):
+            imp = self._enum_import(self.model.enum(type.name))
+            if imp:
+                imports.append(imp)
             pass
 
         for child in type.children or []:
@@ -332,6 +342,36 @@ class PythonWriter(Writer, name="python"):
 
         return b
 
+    def write_enum(self, enum: Enumeration) -> Block:
+        """Write enum definition"""
+
+        b = Block()
+
+        b += "class {}(Enum):".format(enum.name)
+
+        values = Block(indent=4)
+        for value in enum.values:
+            values += "{} = {}".format(value.key, value.value)
+
+        b += values
+
+        return b
+
+    def write_enums_file(self) -> Block:
+        """Generate a file with enums"""
+
+        b = Block()
+
+        b += "from enum import Enum"
+        b += ""
+
+        for i, enum in enumerate(self.model.enums):
+            b += self.write_enum(enum)
+            if i < len(self.model.enums) - 1:
+                b += ""
+
+        return b
+
     def create_block(self, block_type: str,
                      entities: Optional[List[str]]=None) -> Block:
         write_ents = [self.model.entity(name)
@@ -341,5 +381,7 @@ class PythonWriter(Writer, name="python"):
             return self.write_classes(write_ents)
         elif block_type == "class_file":
             return self.write_class_file(write_ents)
+        elif block_type == "enums_file":
+            return self.write_enums_file()
         else:
             raise Exception("Unknown Python block type '{}'".format(block_type))

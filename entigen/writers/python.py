@@ -56,6 +56,8 @@ class PythonWriter(Writer, name="python"):
             return PYTHON_BASE_TYPES[type.name]
         elif self.model.is_entity(type.name):
             return type.name
+        elif self.model.is_enum(type.name):
+            return type.name
         else:
             raise DatatypeError(type.name)
 

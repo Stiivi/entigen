@@ -8,7 +8,7 @@ from ..utils import decamelize, to_identifier
 class InfoWriter(Writer, name="info"):
     """Writer that creates basic information about the model"""
 
-    block_types = ["entity_list"]
+    block_types = ["entity_list", "enum_list"]
 
     variables = [
         ("decamelize", "Decamelize entity names into valid lowercase identifier"),
@@ -22,6 +22,21 @@ class InfoWriter(Writer, name="info"):
             self.decamelize = True
         else:
             self.decamelize = False
+
+    def write_enum_list(self) -> Block:
+        """Write list of enum names, one per line."""
+
+        b = Block()
+
+        for enum in self.model.enums:
+            if self.decamelize:
+                name = to_identifier(decamelize(enum.name))
+            else:
+                name = enum.name
+
+            b += name
+
+        return b
 
     def write_entity_list(self, entities: List[Entity]) -> Block:
         """Write list of entity names, one per line."""
@@ -46,5 +61,8 @@ class InfoWriter(Writer, name="info"):
 
         if block_type == "entity_list":
             return self.write_entity_list(write_ents)
+        elif block_type == "enum_list":
+            return self.write_enum_list()
         else:
-            raise Exception("Unknown Python block type '{}'".format(block_type))
+            raise Exception("Unknown Info writer block type '{}'"
+                            .format(block_type))

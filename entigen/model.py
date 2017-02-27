@@ -52,13 +52,37 @@ class Entity:
         self.properties = properties
 
 
+class EnumValue:
+    key: str
+    value: int
+    label: str
+    desc: str
+
+    def __init__(self, key: str, value: int, label: str, desc: str) -> None:
+        self.key = key
+        self.value = value
+        self.label = label
+        self.desc = desc
+
+
+class Enumeration:
+    name: str
+    values: List[EnumValue]
+
+    def __init__(self, name: str, values: List[EnumValue]) -> None:
+        self.name = name
+        self.values = values
+
+
 class Model:
     """Metamodel container – contains entities and other model elements."""
     entities: List[Entity]
+    enums: List[Enumeration]
 
     def __init__(self) -> None:
         """Create an empty metamodel"""
         self.entities = []
+        self.enums = []
 
     def add_entity(self, entity: Entity) -> None:
         """Add entity `entity` to the model. If entity with given name already
@@ -68,14 +92,34 @@ class Model:
                                 .format(entity.name))
         self.entities.append(entity)
 
+    def add_enum(self, enum: Enumeration) -> None:
+        """Add enum to the model. If enum with given name already
+        exists an exception is raised."""
+        if enum.name in self.enum_names:
+            raise MetadataError("Enum '{}' already exists."
+                                .format(enum.name))
+        self.enums.append(enum)
+
     def entity(self, name: str) -> Entity:
         return [ent for ent in self.entities if ent.name == name][0]
+
+    def enum(self, name: str) -> Enumeration:
+        return [enum for enum in self.enums if enum.name == name][0]
 
     @property
     def entity_names(self) -> List[str]:
         """Return list of names of all entities in the model"""
         return [ent.name for ent in self.entities]
 
+    @property
+    def enum_names(self) -> List[str]:
+        """Return list of names of all enumerations in the model"""
+        return [enum.name for enum in self.enums]
+
     def is_entity(self, symbol: str) -> bool:
         """Return `true` if the symbol is an entity"""
         return symbol in self.entity_names
+
+    def is_enum(self, symbol: str) -> bool:
+        """Return `true` if the symbol is an entity"""
+        return symbol in self.enum_names

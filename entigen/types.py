@@ -15,13 +15,17 @@ BASE_TYPES = [
     # Special case of a string data type for which certain validation rules
     # might apply
     "identifier",
+    # Object reference – interpretation left to application or writer. Usually
+    # `Any` or `object` type, in database it might be `int` or `uuid`
+    "objref",
 ]
 
 COMPOSITE_TYPES = [
-    "list"        
+    "list",
+    "dict"        
 ]
 
-COMPOSITE_PATTERN = r"^(\w+)<(\w+)>$"
+COMPOSITE_PATTERN = r"^(\w+)<((\w)+(,(\w)+)*)>$"
 
 """Pattern for composite data type. Note that we accept only composite of a
 base type, no recursion is allowed."""
@@ -51,9 +55,10 @@ class Type:
                 raise Exception("Can't use base type '{}' as a composite type"
                                 .format(typename))
 
-            child = Type(match.groups()[1])
+            children_str = match.groups()[1]
+            children = [Type(child) for child in children_str.split(",")]
 
-            return Type(typename, children=[child])
+            return Type(typename, children=children)
         else:
             return Type(string)
 
@@ -82,7 +87,7 @@ class Type:
     def __str__(self) -> str:
         if self.children:
             children_str = ",".join(str(child) for child in self.children)
-            return "{}<children_str>".format(self.name)
+            return "{}<{}>".format(self.name, children_str)
         else:
             return self.name
 

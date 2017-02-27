@@ -120,11 +120,14 @@ The base types are:
 * `string`
 * `int`
 * `identifier` - internally same as string, but writers can implement checks
-    for content beign valid identifier
+   for content beign valid identifier
+* `objref` - object reference – interpretation left to application or writer.
+  Usually `Any` or `object` type, in database it might be just `integer` or
+  `uuid`
 
 The complex types are:
 
-* `list<BASETYPE>` - list of base-type objects
+* `list<BASETYPE1,BASETYPE2,...>` - list of base-type objects
 
 
 ### Special default values

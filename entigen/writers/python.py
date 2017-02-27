@@ -15,6 +15,7 @@ PYTHON_BASE_TYPES = {
     "identifier": "str",
     "string": "str",
     "int": "int",
+    "objref": "Any",
 }
 
 

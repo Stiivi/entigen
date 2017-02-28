@@ -203,6 +203,18 @@ class PythonWriter(Writer, name="python"):
         typed_arg = self.typed_property(prop, wrap=wrap)
         return "{}={}".format(typed_arg, value)
 
+    def default_value(self, prop: Property) -> str:
+        """Return appropriated default value for property `prop`"""
+        if prop.default != "[]":
+            return prop.default
+
+        if prop.type.name == "list":
+            return "[]"
+        elif prop.type.name == "dict":
+            return "{}"
+        else:
+            return prop.default
+
     def init_assignment(self, prop: Property) -> Block:
         """Return a __init__ asignment for property `prop` with assigned
         default value."""
@@ -212,7 +224,7 @@ class PythonWriter(Writer, name="python"):
         # Nothing to do if there is no default value
         if prop.type.is_composite and prop.default:
             b += "if {} is None:".format(prop.name)
-            b += "    self.{} = {}".format(prop.name, prop.default)
+            b += "    self.{} = {}".format(prop.name, self.default_value(prop))
             b += "else:".format(prop.name)
             b += "    self.{} = {}".format(prop.name, prop.name)
         else:

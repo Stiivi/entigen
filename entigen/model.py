@@ -31,8 +31,11 @@ class Property:
     default: Optional[str]
     """String representation of the default value"""
 
+    is_optional: bool
+    """Flag whether the property is optional"""
+
     def __init__(self, name: str, tag: int, raw_type: str, label: str,
-            desc: str, default: Optional[str]) -> None:
+            desc: str, default: Optional[str], is_optional: bool) -> None:
         self.name = name
         self.tag = tag
         self.raw_type = raw_type
@@ -41,6 +44,7 @@ class Property:
         self.label = label
         self.desc = desc
         self.default = default
+        self.is_optional = is_optional
 
 
 class Entity:

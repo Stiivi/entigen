@@ -11,6 +11,7 @@ from typing import Optional, Iterable, Dict, List
 from ..errors import MetadataError
 from ..model import Model, Entity, Property, Enumeration, EnumValue
 from ..extensible import Reader
+from ..utils import to_bool
 
 
 PROPERTIES_FILE = "properties.csv"
@@ -67,6 +68,7 @@ class CSVReader(Reader, name="csv"):
             label=row["label"],
             desc=row["description"],
             default=default,
+            is_optional=to_bool(row["optional"]),
         )
 
         return prop
